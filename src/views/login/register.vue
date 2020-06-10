@@ -1,4 +1,4 @@
-<template>
+ <template>
   <div class="register">
     <el-dialog title="提示" :visible.sync="dialogVisible" width="30%" center>
       <!-- 顶部区域 -->
@@ -8,8 +8,9 @@
         label-position="left"
         label-width="80px"
         :rules="rules"
-        :model="registerForm"
         status-icon
+        :model="registerForm"
+        ref="registerRef"
       >
         <el-form-item label="头像" prop="avatar">
           <el-upload
@@ -24,8 +25,8 @@
             <i v-else class="el-icon-plus avatar-uploader-icon"></i>
           </el-upload>
         </el-form-item>
-        <el-form-item label="昵称" prop="name">
-          <el-input v-model="registerForm.name"></el-input>
+        <el-form-item label="昵称" prop="username">
+          <el-input v-model="registerForm.username"></el-input>
         </el-form-item>
         <el-form-item label="邮箱" prop="email">
           <el-input v-model="registerForm.email"></el-input>
@@ -43,7 +44,7 @@
             </el-col>
             <el-col :span="6" class="emp"></el-col>
             <el-col :span="8">
-              <img class="captcha" src="@/assets/images/login_captcha.png/" alt />
+              <img @click="resetCode" class="captcha" :src="codeUrl" alt />
             </el-col>
           </el-row>
         </el-form-item>
@@ -54,7 +55,7 @@
             </el-col>
             <el-col :span="6" class="emp"></el-col>
             <el-col :span="8">
-              <el-button class="rcode">获取手机验证码</el-button>
+              <el-button class="rcode" @click="getRcode">获取手机验证码</el-button>
             </el-col>
           </el-row>
         </el-form-item>
@@ -62,7 +63,7 @@
       <!-- 底部区域 -->
       <span slot="footer" class="dialog-footer">
         <el-button @click="dialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="dialogVisible = false">确 定</el-button>
+        <el-button type="primary" @click="submit">确 定</el-button>
       </span>
     </el-dialog>
   </div>
@@ -73,21 +74,24 @@ export default {
   name: "register",
   data() {
     return {
+      codeUrl: process.env.VUE_APP_BASEURL + "/captcha?type=sendsms",
       dialogVisible: false, //控制注册组件的显示和隐藏
       imageUrl: "", //头像上传成功之后服务器返回的服务器保存头像的地址
       uploadAction: process.env.VUE_APP_BASEURL + "/uploads", //头像上传地址
       registerForm: {
-        name: "",
-        email: "",
-        phone: "",
-        password: "",
+        username: "sas",
+        email: "asds@qq.com",
+        phone: "19925663326",
+        password: "0000000",
         code: "",
         rcode: "",
         avatar: ""
       },
       rules: {
         avatar: [{ required: true, message: "请上传头像！", trigger: "blur" }],
-        name: [{ required: true, message: "请输入昵称！", trigger: "blur" }],
+        username: [
+          { required: true, message: "请输入昵称！", trigger: "blur" }
+        ],
         email: [
           {
             required: true,
@@ -131,12 +135,35 @@ export default {
               if (!value) {
                 return callback(new Error("请输入图形码！"));
               }
-
+              if (!Number.isInteger(value)) {
+                callback(new Error("请输入数字值"));
+              }
+              if (value.toString().length != 4) {
+                return callback(new Error("图形码为4位！"));
+              }
+              callback();
             },
             trigger: "blur"
           }
         ],
-        rcode: []
+        rcode: [
+          {
+            required: true,
+            validator: (rule, value, callback) => {
+              if (!value) {
+                return callback(new Error("请输入验证码！"));
+              }
+              if (!Number.isInteger(value)) {
+                callback(new Error("请输入数字值"));
+              }
+              if (value.toString().length != 4) {
+                return callback(new Error("验证码为4位！"));
+              }
+              callback();
+            },
+            trigger: "blur"
+          }
+        ]
       }
     };
   },
@@ -164,6 +191,47 @@ export default {
       this.registerForm.avatar = res.data.file_path;
       // 给imageUrl赋值，让图片显示出来 拼接时需要加上"/"
       this.imageUrl = process.env.VUE_APP_BASEURL + "/" + res.data.file_path;
+    },
+    resetCode() {
+      this.codeUrl =
+        process.env.VUE_APP_BASEURL +
+        "/captcha?type=sendsms&r=" +
+        Math.random();
+    },
+    async getRcode() {
+      const res = await this.$axios.post("/sendsms", {
+        code: this.registerForm.code,
+        phone: this.registerForm.phone
+      });
+      if (res.data.code == 200) {
+        this.registerForm.rcode = res.data.data.captcha;
+      } else {
+        this.resetCode();
+        this.$message({
+          message: res.data.message,
+          type: "warning"
+        });
+      }
+    },
+    submit() {
+      this.$refs.registerRef.validate(async valid => {
+        if (!valid) {
+          return;
+        }
+        let res = await this.$axios.post("/register", this.registerForm);
+        if (res.data.code !== 200) {
+          this.$message({
+            message: res.data.message,
+            type: "warning"
+          });
+        } else {
+          this.$message({
+            message: "注册成功！",
+            type: "success"
+          });
+          this.dialogVisible = false;
+        }
+      });
     }
   }
 };
