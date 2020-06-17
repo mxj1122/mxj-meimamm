@@ -21,7 +21,7 @@
         <el-form-item>
           <el-button type="primary" @click="search">搜索</el-button>
           <el-button @click="clearFormIfo">清空</el-button>
-          <el-button type="primary">+新增用户</el-button>
+          <el-button type="primary" @click="addUser">+新增用户</el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -67,11 +67,16 @@
         ></el-pagination>
       </div>
     </el-card>
+    <user-edit ref="userEditRef"></user-edit>
   </div>
 </template>
 <script>
+import UserEdit from "./user-add-edit";
 export default {
   name: "user",
+  components: {
+    UserEdit
+  },
   data() {
     return {
       searchForm: {
@@ -113,6 +118,11 @@ export default {
       this.$refs.searchFormRef.resetFields();
       this.search();
     },
+    // 新增用户
+    addUser() {
+      this.$refs.userEditRef.model = "add";
+      this.$refs.userEditRef.centerDialogVisible = true;
+    },
     // 改变用户状态
     async changeStatus(id) {
       const res = await this.$axios.post("/user/status", { id });
@@ -121,25 +131,22 @@ export default {
       }
     },
     // 删除用户
-     removeUser(id, username) {
-      
-    //   使用模板字符串方法识别username
+    removeUser(id, username) {
+      //   使用模板字符串方法识别username
       this.$confirm(`该操作将永久删除用户《${username}》,是否继续？`, "提示", {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
         type: "warning"
       })
         .then(async () => {
-            const res = await this.$axios.post("/user/remove", { id })
+          const res = await this.$axios.post("/user/remove", { id });
           this.$message({
             type: "success",
             message: "删除成功!"
           });
-          this.getTableIfo()
+          this.getTableIfo();
         })
-        .catch(() => {
-          
-        });
+        .catch(() => {});
     },
     //   每页val条改变事件
     handleSizeChange(val) {
@@ -166,7 +173,7 @@ export default {
   .pagination {
     text-align: center;
     margin-top: 30px;
-    background-color:skyblue;
+    background-color: skyblue;
   }
 }
 </style>
