@@ -10,7 +10,7 @@
       <div class="right">
         <img :src="avatar" alt />
         <span class="name">
-          <i>{{username}}</i>, 欢迎您
+         用户：<i class="username">{{username}}</i>, 欢迎您!
         </span>
         <el-button type="primary" @click="logout">退出</el-button>
       </div>
@@ -139,6 +139,12 @@ export default {
       }
       .name {
         margin-right: 38px;
+        .username {
+          // list-style: none;
+          color: red;
+          font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+          font-size: 20px;
+        }
       }
     }
   }
