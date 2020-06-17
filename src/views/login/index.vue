@@ -121,7 +121,7 @@ export default {
       this.$refs.elForm.validate(async valid => {
         if (!valid) return;
         const res = await this.$axios.post("/login", this.formIfo);
-        console.log(res);
+        // console.log(res);
         
         if (res.data.code === 200) {
           this.$message({

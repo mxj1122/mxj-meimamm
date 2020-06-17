@@ -1,5 +1,6 @@
 <template>
   <el-container class="layout">
+    <!-- 头部 -->
     <el-header class="header">
       <div class="left">
         <i style="font-size: 20px;" class="el-icon-s-fold" @click="isCollapse=!isCollapse"></i>
@@ -15,6 +16,7 @@
       </div>
     </el-header>
     <el-container class="container">
+      <!-- 侧边栏 -->
       <el-aside width="auto" class="aside">
         <el-menu
           class="el-menu-vertical-demo"
@@ -22,6 +24,7 @@
           background-color="#545c64"
           text-color="#fff"
           router
+          :default-active="activeMenu"
         >
           <el-menu-item index="/layout/chart">
             <i class="el-icon-pie-chart"></i>
@@ -45,6 +48,7 @@
           </el-menu-item>
         </el-menu>
       </el-aside>
+      <!-- 内容区域 -->
       <el-main style="background-color:#e8e9ec;">
         <router-view></router-view>
       </el-main>
@@ -53,50 +57,52 @@
 </template>
 
 <script>
-import {delToken} from '@/utils/token'
+import { delToken } from "@/utils/token";
 export default {
+  name:'layout',
   data() {
     return {
       isCollapse: false, //控制侧边栏收缩
       avatar: "", //用户头像
-      username: "" //用户名
+      username: "", //用户名
+      activeMenu: "/layout/user" //默认选中的侧边栏:用户列表
     };
   },
-  async created() {
-    // 获取用户信息
-    const res = await this.$axios.get("/info");
-    // console.log(res);
-    if (res.data.code == 200) {
-      this.avatar = process.env.VUE_APP_BASEURL + "/" + res.data.data.avatar;
-      this.username = res.data.data.username;
-    }
+   created() {
+    //  获取用户信息
+    this.getUserInfo();
+    // 侧边栏选中在刷新时不变
+    // console.log(this.$router);
+    this.activeMenu=this.$router.currentRoute.fullPath;
+    
   },
   methods: {
+    // 获取用户信息
+    async getUserInfo() {
+      const res = await this.$axios.get("/info");
+      // console.log(res);
+      if (res.data.code == 200) {
+        this.avatar = process.env.VUE_APP_BASEURL + "/" + res.data.data.avatar;
+        this.username = res.data.data.username;
+      }
+    },
     // 退出事件
     logout() {
       this.$confirm("是否退出?", "提示", {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
         type: "warning"
-      })
-        .then(async () => {
-          const res = await this.$axios.get("/logout");
-          console.log(res);
-          if (res.data.code == 200) {
-            delToken();
-            this.$message({
-              type: "success",
-              message: "成退出!"
-            });
-            this.$router.push('/login')
-          }
-        })
-        .catch(() => {
+      }).then(async () => {
+        const res = await this.$axios.get("/logout");
+        if (res.data.code == 200) {
+          delToken();
           this.$message({
-            type: "info",
-            message: "取消退出"
+            type: "success",
+            message: "成退出!"
           });
-        });
+          this.$router.push("/login");
+        }
+      });
     }
   }
 };
