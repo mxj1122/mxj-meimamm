@@ -51,6 +51,7 @@
               :type="scope.row.status===0?'success':'info'"
               @click="changeStatus(scope.row.id)"
             >{{scope.row.status===0?'启用':'禁用'}}</el-button>
+            <el-button type="primary" @click="editUser(scope.row)">编辑</el-button>
             <el-button type="danger" @click="removeUser(scope.row.id,scope.row.username)">删除</el-button>
           </template>
         </el-table-column>
@@ -118,12 +119,24 @@ export default {
       this.$refs.searchFormRef.resetFields();
       this.search();
     },
-    // 新增用户
+    // 新增
     addUser() {
       this.$refs.userEditRef.model = "add";
       this.$refs.userEditRef.centerDialogVisible = true;
+      // 优化再次打开新增界面时任然保留上次输入内容和校验的BUG
+      // 要拿到el-form元素必须渲染之后才可以   因为vue在display=none时不会加载el-form
+      this.$nextTick(() => {
+        this.$refs.userEditRef.$refs.userEditFormRef.resetFields();
+      });
     },
-    // 改变用户状态
+    // 编辑
+    editUser(row) {
+      this.$refs.userEditRef.model = "edit";
+      this.$refs.userEditRef.centerDialogVisible = true;
+      // 深/浅拷贝以及通过绑定属性使字符串直接成为数字（字符串：value="1" /数字：:value="1"）
+      this.$refs.userEditRef.userEditForm=JSON.parse(JSON.stringify(row));
+    },
+    // 改变 禁/启用 状态
     async changeStatus(id) {
       const res = await this.$axios.post("/user/status", { id });
       if (res.data.code === 200) {

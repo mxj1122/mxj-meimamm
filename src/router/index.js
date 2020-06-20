@@ -9,6 +9,7 @@ import Question from '@/views/layout/question'
 import User from '@/views/layout/user'
 import Subject from '@/views/layout/subject'
 import Enterprise from '@/views/layout/enterprise'
+import Welcome from '@/views/layout/welcome'
 
 Vue.use(VueRouter)
 
@@ -22,7 +23,8 @@ const router =new VueRouter({
             {path:'question',component:Question},
             {path:'user',component:User},
             {path:'subject',component:Subject},
-            {path:'enterprise',component:Enterprise}
+            {path:'enterprise',component:Enterprise},
+            {path:'welcome',component:Welcome},
         ]}
     ]
 })

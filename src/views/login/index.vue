@@ -133,7 +133,7 @@ export default {
           // 保存token
           setToken(res.data.data.token);
           // 跳转到layout页面
-          this.$router.push("/layout");
+          this.$router.push("/layout/welcome");
         } else {
           // 刷新验证码
           this.codeURL =
